@@ -1,6 +1,6 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Scissors, Calendar, Phone, Instagram, Facebook, User, LogOut, Settings } from 'lucide-react';
+import { Scissors, Calendar, Phone, Instagram, Facebook, User, LogOut, Settings, X, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { getImageUrl } from '@/lib/utils';
@@ -14,6 +14,7 @@ const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const { user, logout, isAuthenticated } = useAuth();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Rediriger l'admin vers l'interface admin
   useEffect(() => {
@@ -113,13 +114,111 @@ const Layout = ({ children }: LayoutProps) => {
               )}
             </nav>
 
-            <button className="md:hidden p-2">
-              <div className="w-6 h-0.5 bg-foreground mb-1.5"></div>
-              <div className="w-6 h-0.5 bg-foreground mb-1.5"></div>
-              <div className="w-6 h-0.5 bg-foreground"></div>
+            <button 
+              className="md:hidden p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
+
+        {/* Menu mobile déroulant */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <nav className="container mx-auto px-4 py-4 space-y-2">
+              <Link
+                to="/"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 text-foreground hover:text-primary hover:bg-muted rounded-lg transition-colors font-medium"
+              >
+                Accueil
+              </Link>
+              <Link
+                to="/services"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 text-foreground hover:text-primary hover:bg-muted rounded-lg transition-colors font-medium"
+              >
+                Services
+              </Link>
+              <Link
+                to="/booking"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 rounded-lg bg-gradient-to-r from-primary to-primary-light text-primary-foreground font-medium hover:shadow-luxury transition-all"
+              >
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Réserver
+                </div>
+              </Link>
+              
+              {/* Auth buttons mobile */}
+              {isAuthenticated ? (
+                <div className="pt-2 space-y-2 border-t border-border/50">
+                  {user?.role_id === 1 && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block py-3 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        Admin
+                      </div>
+                    </Link>
+                  )}
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block py-3 px-4 rounded-lg border border-border hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {user?.first_name}
+                    </div>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Déconnexion
+                  </Button>
+                </div>
+              ) : (
+                <div className="pt-2 space-y-2 border-t border-border/50">
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block py-3 px-4 text-foreground hover:text-primary hover:bg-muted rounded-lg transition-colors font-medium"
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block py-3 px-4 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      S'inscrire
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </nav>
+          </div>
+        )}
       </header>
 
       <main className="flex-1">{children}</main>
